@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Image to PDF Converter</title>
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f4f7f6;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.1);
+      padding: 40px;
+      text-align: center;
+      max-width: 600px;
+      width: 100%;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    label {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #5cb85c;
+      color: white;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    label:hover {
+      background-color: #4cae4c;
+    }
+
+    #image-preview {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .image-box {
+      position: relative;
+      margin: 10px;
+    }
+
+    .image-box img {
+      width: 200px;
+      height: auto;
+      border: 2px solid #ccc;
+      border-radius: 5px;
+      padding: 5px;
+    }
+
+    .remove-btn {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background-color: red;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      width: 25px;
+      height: 25px;
+      text-align: center;
+      font-size: 16px;
+    }
+
+    .button-group {
+      margin-top: 20px;
+    }
+
+    .button-group button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      margin: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .button-group .convert-btn {
+      background-color: #0275d8;
+      color: white;
+    }
+
+    .button-group .convert-btn:hover {
+      background-color: #025aa5;
+    }
+
+    .button-group .clear-btn {
+      background-color: #d9534f;
+      color: white;
+    }
+
+    .button-group .clear-btn:hover {
+      background-color: #c9302c;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Image to PDF Converter</h1>
+
+    <input type="file" id="imageInput" multiple accept="image/*">
+    <label for="imageInput">Upload Images</label>
+
+    <div id="image-preview"></div>
+
+    <div class="button-group">
+      <button class="convert-btn" onclick="generatePDF()">Convert to PDF</button>
+      <button class="clear-btn" onclick="clearImages()">Clear Images</button>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    const imageInput = document.getElementById('imageInput');
+    const imagePreview = document.getElementById('image-preview');
+    let images = [];
+
+    imageInput.addEventListener('change', () => {
+      Array.from(imageInput.files).forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const imgElement = document.createElement('img');
+          imgElement.src = e.target.result;
+
+          const imageBox = document.createElement('div');
+          imageBox.classList.add('image-box');
+
+          const removeBtn = document.createElement('button');
+          removeBtn.classList.add('remove-btn');
+          removeBtn.innerHTML = '&times;';
+          removeBtn.onclick = () => {
+            imageBox.remove();
+            images = images.filter((img) => img !== file);
+          };
+
+          imageBox.appendChild(imgElement);
+          imageBox.appendChild(removeBtn);
+          imagePreview.appendChild(imageBox);
+
+          images.push(file);
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+
+    function generatePDF() {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF();
+
+      images.forEach((image, index) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.src = e.target.result;
+          img.onload = () => {
+            pdf.addImage(img, 'JPEG', 10, 10, 190, 250);
+            if (index < images.length - 1) pdf.addPage();
+            if (index === images.length - 1) pdf.save('converted_images.pdf');
+          };
+        };
+        reader.readAsDataURL(image);
+      });
+    }
+
+    function clearImages() {
+      images = [];
+      imagePreview.innerHTML = '';
+      imageInput.value = '';
+    }
+  </script>
+
+</body>
+</html>
